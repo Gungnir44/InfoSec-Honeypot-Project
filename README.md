@@ -1,15 +1,16 @@
-# Honeypot Attack Analysis System
+# Honeypot Attack Analysis System with ML
 
-A comprehensive honeypot deployment and analysis platform for detecting, logging, and visualizing real-world cyber attacks.
+A production-grade honeypot deployment and analysis platform with advanced machine learning capabilities for detecting, classifying, and analyzing real-world cyber attacks.
 
 ## Project Overview
 
-This project implements a low-to-medium interaction honeypot system that:
-- Simulates vulnerable SSH/Telnet services using Cowrie
-- Captures attack attempts, credentials, commands, and malware samples
-- Analyzes attack patterns and attacker behavior
-- Provides real-time visualization of attack data through a web dashboard
-- Geolocates attackers and identifies common attack vectors
+This project implements an intelligent honeypot system that:
+- **Captures Real Attacks**: Simulates vulnerable SSH/Telnet services using Cowrie
+- **ML-Powered Analysis**: Classifies attacks and detects anomalies using machine learning
+- **Smart Intelligence**: Extracts 30+ behavioral features for deep attack analysis
+- **Real-Time Visualization**: Interactive dashboard with maps, charts, and statistics
+- **Production Ready**: Docker support, testing suite, and comprehensive documentation
+- **Research Capable**: Export datasets for ML research and training
 
 ## Architecture
 
@@ -47,7 +48,7 @@ This project implements a low-to-medium interaction honeypot system that:
 
 ## Features
 
-### Honeypot Capabilities
+### 🎯 Honeypot Capabilities
 - SSH honeypot on port 2222 (or 22)
 - Telnet honeypot
 - Fake filesystem emulation
@@ -55,21 +56,37 @@ This project implements a low-to-medium interaction honeypot system that:
 - Malware download capture
 - Custom service responses
 
-### Analysis Features
+### 🤖 Machine Learning Features
+- **Attack Classification**: Categorizes attacks into 6 types (brute force, reconnaissance, malware deployment, persistence, bot, advanced)
+- **Anomaly Detection**: Identifies unusual attack patterns using Isolation Forest
+- **Feature Engineering**: Extracts 30+ behavioral features from sessions
+- **Model Training Pipeline**: End-to-end training with automated labeling
+- **Dataset Export**: Export data in CSV/JSON for external ML tools
+- **Jupyter Notebooks**: Interactive analysis and visualization
+
+### 📊 Analysis Features
 - Real-time log parsing and analysis
 - Credential pattern analysis (most common usernames/passwords)
-- Command frequency analysis
+- Command categorization (reconnaissance, download, execution, persistence)
 - Attack source geolocation (country, city, ISP)
 - Temporal analysis (attack patterns over time)
-- Attacker persistence tracking
+- Attack sophistication scoring
+- Bot vs human detection
 
-### Visualization Dashboard
+### 📈 Visualization Dashboard
 - Interactive world map showing attack origins
 - Real-time attack feed
 - Top 10 attacking IPs
 - Most common credentials used
 - Command execution timeline
 - Attack statistics and graphs
+- ML model insights
+
+### 🔔 Alerting System
+- Real-time security alerts
+- Multiple notification channels (Email, Slack, Webhook)
+- Configurable alert thresholds
+- Severity-based routing
 
 ## Technology Stack
 

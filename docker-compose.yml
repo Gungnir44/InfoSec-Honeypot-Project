@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: honeypot_db
+    environment:
+      POSTGRES_DB: honeypot_db
+      POSTGRES_USER: honeypot_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_this_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - honeypot_network
+    restart: unless-stopped
+
+  dashboard:
+    build: .
+    container_name: honeypot_dashboard
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: honeypot_db
+      DB_USER: honeypot_user
+      DB_PASSWORD: ${DB_PASSWORD:-change_this_password}
+      DASHBOARD_HOST: 0.0.0.0
+      DASHBOARD_PORT: 5000
+      FLASK_ENV: ${FLASK_ENV:-production}
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - honeypot_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  honeypot_network:
+    driver: bridge
