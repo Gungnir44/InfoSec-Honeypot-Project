@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Honeypot System{% endblock %}
+
+{% block content %}
+<div class="analytics-page">
+    <h1>Advanced Analytics</h1>
+
+    <!-- Top Attacking IPs -->
+    <div class="section">
+        <h2>Top 20 Attacking IPs</h2>
+        <div class="chart-container">
+            <canvas id="top-ips-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Command Categories -->
+    <div class="section">
+        <h2>Command Categories</h2>
+        <div class="chart-container">
+            <canvas id="command-categories-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Top Usernames -->
+    <div class="section">
+        <h2>Most Tried Usernames</h2>
+        <div class="chart-container">
+            <canvas id="usernames-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Attack Patterns -->
+    <div class="section">
+        <h2>Attack Insights</h2>
+        <div id="insights-container" class="insights-grid">
+            <div class="insight-card">
+                <h3>Most Active Hour</h3>
+                <p id="active-hour">Analyzing...</p>
+            </div>
+            <div class="insight-card">
+                <h3>Average Session Duration</h3>
+                <p id="avg-duration">Calculating...</p>
+            </div>
+            <div class="insight-card">
+                <h3>Success Rate</h3>
+                <p id="success-rate">Computing...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAnalytics();
+    });
+
+    async function loadAnalytics() {
+        await loadTopIPsChart();
+        await loadCommandCategoriesChart();
+        await loadUsernamesChart();
+    }
+
+    async function loadTopIPsChart() {
+        const response = await fetch('/api/attacks/top-ips?limit=20');
+        const result = await response.json();
+
+        if (result.success && result.data.length > 0) {
+            const ctx = document.getElementById('top-ips-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: result.data.map(item => item.ip),
+                    datasets: [{
+                        label: 'Attack Count',
+                        data: result.data.map(item => item.count),
+                        backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                }
+            });
+        }
+    }
+
+    async function loadCommandCategoriesChart() {
+        const response = await fetch('/api/commands/categories');
+        const result = await response.json();
+
+        if (result.success && result.data.length > 0) {
+            const ctx = document.getElementById('command-categories-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: result.data.map(item => item.category),
+                    datasets: [{
+                        data: result.data.map(item => item.count),
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                            '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+                        ],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                }
+            });
+        }
+    }
+
+    async function loadUsernamesChart() {
+        const response = await fetch('/api/credentials/usernames?limit=15');
+        const result = await response.json();
+
+        if (result.success && result.data.length > 0) {
+            const ctx = document.getElementById('usernames-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: result.data.map(item => item.username),
+                    datasets: [{
+                        label: 'Attempts',
+                        data: result.data.map(item => item.count),
+                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                }
+            });
+        }
+    }
+</script>
+{% endblock %}

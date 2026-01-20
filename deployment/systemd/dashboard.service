@@ -1,0 +1,28 @@
+[Unit]
+Description=Honeypot Dashboard (Gunicorn + Flask)
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=notify
+User=honeypot
+Group=honeypot
+WorkingDirectory=/home/honeypot/honeypot-project
+Environment="PATH=/home/honeypot/venv/bin"
+ExecStart=/home/honeypot/venv/bin/gunicorn \
+    --workers 4 \
+    --bind 127.0.0.1:5000 \
+    --access-logfile /var/log/honeypot/dashboard-access.log \
+    --error-logfile /var/log/honeypot/dashboard-error.log \
+    --timeout 120 \
+    dashboard.app:app
+
+Restart=always
+RestartSec=5s
+
+# Security
+PrivateTmp=yes
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

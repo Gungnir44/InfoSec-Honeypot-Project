@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}About - Honeypot System{% endblock %}
+
+{% block content %}
+<div class="about-page">
+    <h1>About This Honeypot Project</h1>
+
+    <div class="about-section">
+        <h2>What is a Honeypot?</h2>
+        <p>
+            A honeypot is a security mechanism that creates a decoy system designed to attract and detect attackers.
+            It mimics vulnerable systems to lure malicious actors, allowing security professionals to observe attack
+            patterns, techniques, and tools in a controlled environment.
+        </p>
+    </div>
+
+    <div class="about-section">
+        <h2>Project Architecture</h2>
+        <ul>
+            <li><strong>Cowrie Honeypot:</strong> Medium-interaction SSH/Telnet honeypot that simulates a Linux system</li>
+            <li><strong>Python Backend:</strong> Log parsing, geolocation, and pattern analysis</li>
+            <li><strong>PostgreSQL Database:</strong> Structured storage for attack data</li>
+            <li><strong>Flask Dashboard:</strong> Real-time visualization of attack intelligence</li>
+        </ul>
+    </div>
+
+    <div class="about-section">
+        <h2>What We Capture</h2>
+        <ul>
+            <li>Login attempts (usernames and passwords)</li>
+            <li>Commands executed by attackers</li>
+            <li>Malware samples downloaded</li>
+            <li>Attack source geolocation</li>
+            <li>Session recordings and duration</li>
+        </ul>
+    </div>
+
+    <div class="about-section">
+        <h2>Technologies Used</h2>
+        <div class="tech-stack">
+            <span class="tech-badge">Python</span>
+            <span class="tech-badge">Flask</span>
+            <span class="tech-badge">PostgreSQL</span>
+            <span class="tech-badge">Cowrie</span>
+            <span class="tech-badge">Chart.js</span>
+            <span class="tech-badge">Leaflet.js</span>
+            <span class="tech-badge">SQLAlchemy</span>
+        </div>
+    </div>
+
+    <div class="about-section">
+        <h2>Security Considerations</h2>
+        <p>
+            This honeypot is deployed on an isolated VPS with strict firewall rules.
+            It has no access to production systems and is designed to be compromised safely.
+            All captured data is sanitized and analyzed in a secure environment.
+        </p>
+    </div>
+
+    <div class="about-section">
+        <h2>GitHub Repository</h2>
+        <p>
+            This project is open source and available on GitHub. Feel free to explore the code,
+            submit issues, or contribute improvements.
+        </p>
+        <a href="https://github.com/yourusername/honeypot-project" class="btn" target="_blank">View on GitHub</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+[Unit]
+Description=Cowrie SSH/Telnet Honeypot
+After=network.target
+
+[Service]
+Type=forking
+User=honeypot
+Group=honeypot
+WorkingDirectory=/home/honeypot/cowrie
+ExecStart=/home/honeypot/cowrie/bin/cowrie start
+ExecStop=/home/honeypot/cowrie/bin/cowrie stop
+Restart=on-failure
+RestartSec=10s
+
+# Security hardening
+PrivateTmp=yes
+NoNewPrivileges=true
+
+# Resource limits
+CPUQuota=50%
+MemoryLimit=512M
+TasksMax=100
+
+[Install]
+WantedBy=multi-user.target

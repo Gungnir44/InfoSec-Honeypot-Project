@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Attack Details - Honeypot System{% endblock %}
+
+{% block content %}
+<div class="attacks-page">
+    <h1>Attack Details</h1>
+
+    <!-- Filters -->
+    <div class="filters">
+        <input type="text" id="ip-filter" placeholder="Filter by IP address...">
+        <select id="country-filter">
+            <option value="">All Countries</option>
+        </select>
+        <input type="date" id="date-filter">
+    </div>
+
+    <!-- Attacks Table -->
+    <div class="table-container">
+        <table id="attacks-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Source IP</th>
+                    <th>Country</th>
+                    <th>City</th>
+                    <th>Port</th>
+                    <th>Session ID</th>
+                </tr>
+            </thead>
+            <tbody id="attacks-tbody">
+                <tr>
+                    <td colspan="6" class="loading">Loading attacks...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+        <button id="prev-page" disabled>Previous</button>
+        <span id="page-info">Page 1</span>
+        <button id="next-page">Next</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let currentPage = 1;
+    const pageSize = 50;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAttacks();
+    });
+
+    async function loadAttacks() {
+        const response = await fetch(`/api/attacks/recent?limit=100`);
+        const result = await response.json();
+
+        if (result.success) {
+            const tbody = document.getElementById('attacks-tbody');
+
+            if (result.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="no-data">No attacks recorded yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = result.data.map(attack => `
+                <tr>
+                    <td>${new Date(attack.timestamp).toLocaleString()}</td>
+                    <td><code>${attack.src_ip}</code></td>
+                    <td>${attack.country || 'Unknown'}</td>
+                    <td>${attack.city || '-'}</td>
+                    <td>${attack.src_port || '-'}</td>
+                    <td><code>${attack.session_id ? attack.session_id.substring(0, 8) : '-'}</code></td>
+                </tr>
+            `).join('');
+        }
+    }
+</script>
+{% endblock %}

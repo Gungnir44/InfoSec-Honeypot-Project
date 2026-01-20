@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Honeypot Dashboard{% endblock %}</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Leaflet for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>🍯 Honeypot Dashboard</h1>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="/" class="{% if request.endpoint == 'index' %}active{% endif %}">Dashboard</a></li>
+            <li><a href="/attacks" class="{% if request.endpoint == 'views.attacks' %}active{% endif %}">Attacks</a></li>
+            <li><a href="/analytics" class="{% if request.endpoint == 'views.analytics' %}active{% endif %}">Analytics</a></li>
+            <li><a href="/about" class="{% if request.endpoint == 'views.about' %}active{% endif %}">About</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>Honeypot Attack Analysis System | &copy; 2024</p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

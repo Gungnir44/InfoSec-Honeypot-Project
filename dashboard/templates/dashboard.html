@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Honeypot System{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-info">
+                <h3 id="total-attacks">Loading...</h3>
+                <p>Total Attacks</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🌍</div>
+            <div class="stat-info">
+                <h3 id="unique-countries">Loading...</h3>
+                <p>Countries</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💻</div>
+            <div class="stat-info">
+                <h3 id="unique-ips">Loading...</h3>
+                <p>Unique IPs</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">👑</div>
+            <div class="stat-info">
+                <h3 id="top-country">Loading...</h3>
+                <p>Top Country</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attack Map -->
+    <div class="section">
+        <h2>🗺️ Attack Origins</h2>
+        <div id="attack-map" style="height: 400px; border-radius: 8px; overflow: hidden;"></div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="charts-grid">
+        <!-- Attacks Timeline -->
+        <div class="chart-container">
+            <h2>📊 Attacks Over Time</h2>
+            <canvas id="timeline-chart"></canvas>
+        </div>
+
+        <!-- Top Countries -->
+        <div class="chart-container">
+            <h2>🌎 Top Attacking Countries</h2>
+            <canvas id="countries-chart"></canvas>
+        </div>
+
+        <!-- Top Credentials -->
+        <div class="chart-container">
+            <h2>🔑 Common Credentials</h2>
+            <canvas id="credentials-chart"></canvas>
+        </div>
+
+        <!-- Top Commands -->
+        <div class="chart-container">
+            <h2>⌨️ Executed Commands</h2>
+            <canvas id="commands-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Recent Attacks Feed -->
+    <div class="section">
+        <h2>🔴 Recent Attack Activity</h2>
+        <div id="recent-attacks" class="attack-feed">
+            <p class="loading">Loading recent attacks...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    // Initialize dashboard when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboardData();
+    });
+
+    async function loadDashboardData() {
+        try {
+            // Load summary statistics
+            await loadStats();
+
+            // Load visualizations
+            await loadAttackMap();
+            await loadTimeline();
+            await loadCountryChart();
+            await loadCredentialsChart();
+            await loadCommandsChart();
+            await loadRecentAttacks();
+
+            console.log('Dashboard loaded successfully');
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+        }
+    }
+
+    async function loadStats() {
+        const response = await fetch('/api/stats/summary');
+        const result = await response.json();
+
+        if (result.success) {
+            const data = result.data;
+            document.getElementById('total-attacks').textContent = data.total_attacks || 0;
+            document.getElementById('unique-countries').textContent = data.unique_countries || 0;
+            document.getElementById('unique-ips').textContent = data.unique_ips || 0;
+            document.getElementById('top-country').textContent = data.top_country || 'N/A';
+        }
+    }
+
+    async function loadRecentAttacks() {
+        const response = await fetch('/api/attacks/recent?limit=10');
+        const result = await response.json();
+
+        if (result.success) {
+            const container = document.getElementById('recent-attacks');
+
+            if (result.data.length === 0) {
+                container.innerHTML = '<p class="no-data">No attacks recorded yet. Deploy the honeypot and wait for attackers!</p>';
+                return;
+            }
+
+            container.innerHTML = result.data.map(attack => `
+                <div class="attack-item">
+                    <div class="attack-time">${new Date(attack.timestamp).toLocaleString()}</div>
+                    <div class="attack-details">
+                        <strong>${attack.src_ip}</strong> from
+                        <span class="country">${attack.country || 'Unknown'}</span>
+                        ${attack.city ? `(${attack.city})` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    // Auto-refresh every 30 seconds
+    setInterval(loadDashboardData, 30000);
+</script>
+{% endblock %}
