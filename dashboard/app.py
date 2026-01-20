@@ -59,9 +59,9 @@ def init_db():
     """Initialize database tables"""
     try:
         db_manager.create_tables()
-        print("✓ Database tables created successfully")
+        print("[OK] Database tables created successfully")
     except Exception as e:
-        print(f"✗ Error creating database tables: {e}")
+        print(f"[ERROR] Error creating database tables: {e}")
         sys.exit(1)
 
 
@@ -72,22 +72,18 @@ if __name__ == '__main__':
     # Validate configuration
     errors = config.validate()
     if errors:
-        print("⚠️  Configuration warnings:")
+        print("Configuration warnings:")
         for error in errors:
             print(f"  - {error}")
         print()
 
-    print(f"""
-    ╔══════════════════════════════════════════╗
-    ║   Honeypot Dashboard Server Starting     ║
-    ╚══════════════════════════════════════════╝
-
-    Server: http://{config.DASHBOARD_HOST}:{config.DASHBOARD_PORT}
-    Environment: {'Production' if not config.DEBUG else 'Development'}
-    Database: {config.DATABASE_URI.split('@')[-1] if '@' in config.DATABASE_URI else 'SQLite'}
-
-    Press Ctrl+C to stop
-    """)
+    print("=" * 60)
+    print("   Honeypot Dashboard Server Starting")
+    print("=" * 60)
+    print(f"\nServer: http://{config.DASHBOARD_HOST}:{config.DASHBOARD_PORT}")
+    print(f"Environment: {'Production' if not config.DEBUG else 'Development'}")
+    print(f"Database: {config.DATABASE_URI.split('@')[-1] if '@' in config.DATABASE_URI else 'SQLite'}")
+    print("\nPress Ctrl+C to stop\n")
 
     # Run Flask app
     app.run(

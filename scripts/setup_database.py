@@ -26,7 +26,7 @@ def main():
     # Validate configuration
     errors = config.validate()
     if errors:
-        print("\n⚠️  Configuration Issues:")
+        print("\nConfiguration Issues:")
         for error in errors:
             print(f"  - {error}")
         print()
@@ -44,12 +44,12 @@ def main():
         # Create tables
         print("\nCreating tables...")
         db_manager.create_tables()
-        print("✓ Tables created successfully")
+        print("[OK] Tables created successfully")
 
         # Test connection
         print("\nTesting database connection...")
         stats = db_manager.get_attack_stats()
-        print(f"✓ Connection successful")
+        print("[OK] Connection successful")
         print(f"  Current stats: {stats['total_attacks']} attacks recorded")
 
         print("\n" + "=" * 60)
@@ -57,7 +57,7 @@ def main():
         print("=" * 60)
 
     except Exception as e:
-        print(f"\n✗ Error: {e}")
+        print(f"\n[ERROR] Error: {e}")
         sys.exit(1)
 
 

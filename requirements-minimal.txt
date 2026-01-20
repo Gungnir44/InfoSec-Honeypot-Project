@@ -1,0 +1,16 @@
+# Minimal requirements for dashboard (no ML yet)
+# Works with Python 3.14
+
+# Core Dependencies
+flask==3.0.0
+flask-cors==4.0.0
+
+# Database
+sqlalchemy==2.0.23
+
+# Utilities
+python-dotenv==1.0.0
+requests==2.31.0
+
+# For sample data generation
+numpy
