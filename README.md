@@ -208,50 +208,51 @@ honeypot-project/
 - Don't use for entrapment
 - Consider data retention policies
 
-## Implementation Phases
+## Implementation Status
 
-### Phase 1: Environment Setup (Week 1)
-- [ ] Provision VPS (DigitalOcean, AWS, Linode)
-- [ ] Install and harden base OS (Ubuntu 22.04 LTS)
-- [ ] Configure firewall rules
-- [ ] Set up SSH key authentication
-- [ ] Install Docker (optional, for containerized deployment)
+### Phase 1: Environment Setup ✅
+- [x] Provision Google Cloud Platform Compute Engine VM
+- [x] Install and harden base OS (Debian 12)
+- [x] Configure GCP firewall rules
+- [x] Set up SSH key authentication
+- [x] Install system dependencies
 
-### Phase 2: Honeypot Deployment (Week 1-2)
-- [ ] Install Cowrie honeypot
-- [ ] Configure Cowrie (ports, filesystem, responses)
-- [ ] Set up log rotation
-- [ ] Test honeypot functionality
-- [ ] Expose to internet and verify attacks are being logged
+### Phase 2: Honeypot Deployment ✅
+- [x] Install Cowrie honeypot
+- [x] Configure Cowrie (SSH on port 2222)
+- [x] Set up systemd service for auto-restart
+- [x] Test honeypot functionality
+- [x] Verified attacks are being logged
 
-### Phase 3: Database Setup (Week 2)
-- [ ] Install PostgreSQL
-- [ ] Design database schema
-- [ ] Create tables and indexes
-- [ ] Implement data models
-- [ ] Test data insertion and queries
+### Phase 3: Database Setup ✅
+- [x] Install PostgreSQL 15
+- [x] Design database schema
+- [x] Create tables and indexes
+- [x] Implement data models (SQLAlchemy)
+- [x] Test data insertion and queries
 
-### Phase 4: Analysis Backend (Week 2-3)
-- [ ] Build log parser for Cowrie JSON logs
-- [ ] Implement geolocation service
-- [ ] Create pattern analysis algorithms
-- [ ] Build command analysis module
-- [ ] Set up automated log processing
+### Phase 4: Analysis Backend ✅
+- [x] Build log parser for Cowrie JSON logs
+- [x] Implement geolocation service (IP-API)
+- [x] Create pattern analysis algorithms
+- [x] Build command analysis module
+- [x] Set up automated log processing (every 5 minutes)
 
-### Phase 5: Web Dashboard (Week 3-4)
-- [ ] Set up Flask application
-- [ ] Create REST API endpoints
-- [ ] Build frontend interface
-- [ ] Implement real-time updates
-- [ ] Add interactive visualizations
-- [ ] Create attack map with Leaflet.js
+### Phase 5: Web Dashboard ✅
+- [x] Set up Flask application with Gunicorn
+- [x] Create REST API endpoints
+- [x] Build frontend interface
+- [x] Implement real-time updates
+- [x] Add interactive visualizations
+- [x] Create attack map with Leaflet.js
+- [x] Configure Nginx reverse proxy
 
-### Phase 6: Testing & Documentation (Week 4)
-- [ ] Write unit tests
-- [ ] Perform security audit
-- [ ] Write comprehensive documentation
-- [ ] Create demo screenshots/videos
-- [ ] Prepare presentation materials
+### Phase 6: ML & Production ✅
+- [x] Implement ML feature engineering (30+ features)
+- [x] Build attack classifier (Random Forest)
+- [x] Add anomaly detection (Isolation Forest)
+- [x] Create alerting system
+- [x] Deploy to production on GCP
 
 ## Getting Started
 
@@ -312,7 +313,7 @@ See [API.md](docs/API.md) for complete API documentation.
 
 ## Deployment
 
-### Development
+### Development (Local)
 ```bash
 python dashboard/app.py
 ```
@@ -322,7 +323,63 @@ python dashboard/app.py
 gunicorn -w 4 -b 127.0.0.1:5000 dashboard.app:app
 ```
 
-See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for production deployment guide.
+### Google Cloud Platform Deployment
+
+This project is deployed on GCP Compute Engine. Here's how to replicate:
+
+#### 1. Create GCP VM
+```bash
+gcloud compute instances create honeypot-vm \
+    --zone=us-central1-a \
+    --machine-type=e2-small \
+    --image-family=debian-12 \
+    --image-project=debian-cloud \
+    --boot-disk-size=20GB \
+    --tags=honeypot
+```
+
+#### 2. Configure Firewall Rules
+```bash
+# Allow honeypot SSH (port 2222)
+gcloud compute firewall-rules create allow-honeypot-ssh \
+    --direction=INGRESS --priority=1000 --network=default \
+    --action=ALLOW --rules=tcp:2222 --source-ranges=0.0.0.0/0 \
+    --target-tags=honeypot
+
+# Allow dashboard (HTTP)
+gcloud compute firewall-rules create allow-dashboard \
+    --direction=INGRESS --priority=1000 --network=default \
+    --action=ALLOW --rules=tcp:80,tcp:443 --source-ranges=0.0.0.0/0 \
+    --target-tags=honeypot
+```
+
+#### 3. Install Dependencies (on VM)
+```bash
+sudo apt update && sudo apt install -y python3-pip python3-venv git postgresql nginx
+```
+
+#### 4. Clone and Configure
+```bash
+git clone https://github.com/Gungnir44/InfoSec-Honeypot-Project.git
+cd InfoSec-Honeypot-Project
+python3 -m venv venv
+./venv/bin/pip install -r requirements.txt
+cp .env.example .env
+# Edit .env with your database credentials
+```
+
+#### 5. Setup Systemd Services
+The project includes systemd service files for:
+- `cowrie.service` - Honeypot daemon
+- `honeypot-dashboard.service` - Web dashboard
+- `honeypot-processor.timer` - Log processor (runs every 5 minutes)
+
+```bash
+sudo systemctl enable cowrie honeypot-dashboard honeypot-processor.timer
+sudo systemctl start cowrie honeypot-dashboard honeypot-processor.timer
+```
+
+See [docs/SETUP.md](docs/SETUP.md) for detailed setup instructions.
 
 ## Expected Results
 
@@ -346,13 +403,14 @@ This project showcases:
 
 ## Future Enhancements
 
-- [ ] Machine learning for anomaly detection
+- [x] ~~Machine learning for anomaly detection~~ ✅ Implemented
+- [x] ~~Email alerts for significant attacks~~ ✅ Implemented
 - [ ] Integration with threat intelligence feeds (AbuseIPDB, Shodan)
 - [ ] Multi-honeypot coordination
 - [ ] Automated attacker profiling
-- [ ] Email alerts for significant attacks
 - [ ] Malware analysis integration (VirusTotal API)
 - [ ] Elasticsearch + Kibana for advanced log analysis
+- [ ] HTTPS with Let's Encrypt SSL certificate
 
 ## Contributing
 
@@ -368,10 +426,17 @@ MIT License - See LICENSE file for details
 - MaxMind GeoIP2
 - OWASP for security best practices
 
+## Live Demo
+
+The honeypot is currently deployed and collecting real attack data:
+- **Dashboard**: Accessible to project reviewers (contact for access)
+- **Data Collection**: Actively capturing SSH brute-force attacks
+- **ML Training**: Collecting data for model training
+
 ## Contact
 
-Joshua [Your Last Name]
-[Your Email or GitHub]
+Joshua
+GitHub: [@Gungnir44](https://github.com/Gungnir44)
 
 ---
 
