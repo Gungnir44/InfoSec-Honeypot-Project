@@ -25,10 +25,12 @@ db_manager = DatabaseManager()
 
 # Import routes after app initialization to avoid circular imports
 from dashboard.routes import api, views
+from dashboard.routes.ml_api import ml_api
 
 # Register blueprints
 app.register_blueprint(api.api_bp, url_prefix='/api')
 app.register_blueprint(views.views_bp)
+app.register_blueprint(ml_api)  # ML API routes
 
 
 @app.route('/')
