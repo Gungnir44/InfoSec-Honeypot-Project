@@ -284,11 +284,11 @@ def generate_weekly_report():
                 </tr>
                 {''.join(f'''
                 <tr>
-                    <td><code>{cred[0]}</code></td>
-                    <td><code>{cred[1][:20]}{'...' if len(cred[1]) > 20 else ''}</code></td>
+                    <td><code>{cred[0] or "N/A"}</code></td>
+                    <td><code>{(cred[1] or "")[:20]}{"..." if cred[1] and len(cred[1]) > 20 else ""}</code></td>
                     <td>{cred[2]}</td>
                 </tr>
-                ''' for cred in top_credentials[:10])}
+                ''' for cred in top_credentials[:10] if cred)}
             </table>
         </div>
 
