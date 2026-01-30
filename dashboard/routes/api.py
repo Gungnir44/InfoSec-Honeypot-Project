@@ -709,6 +709,50 @@ def get_profile_stats():
         }), 500
 
 
+@api_bp.route('/profiles/top', methods=['GET'])
+def get_top_profiles():
+    """Get top attacker profiles sorted by risk score"""
+    try:
+        limit = request.args.get('limit', 10, type=int)
+
+        session = db_manager.get_session()
+        try:
+            from backend.database.models import AttackerProfile
+            profiles = (
+                session.query(AttackerProfile)
+                .order_by(AttackerProfile.risk_score.desc())
+                .limit(limit)
+                .all()
+            )
+
+            data = [
+                {
+                    'ip_address': p.ip_address,
+                    'risk_level': p.risk_level,
+                    'risk_score': p.risk_score,
+                    'sophistication_level': p.sophistication_level,
+                    'primary_objective': p.primary_objective,
+                    'total_sessions': p.total_sessions,
+                    'total_commands': p.total_commands
+                }
+                for p in profiles
+            ]
+        finally:
+            session.close()
+
+        return jsonify({
+            'success': True,
+            'data': data,
+            'count': len(data)
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 @api_bp.route('/profiles/ip/<ip_address>', methods=['GET'])
 def get_attacker_profile(ip_address):
     """Get attacker profile for a specific IP"""
