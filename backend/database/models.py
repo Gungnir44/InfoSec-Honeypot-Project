@@ -12,6 +12,27 @@ from sqlalchemy.orm import relationship
 Base = declarative_base()
 
 
+class Honeypot(Base):
+    """Registered honeypot deployments"""
+    __tablename__ = 'honeypots'
+
+    id = Column(Integer, primary_key=True)
+    honeypot_id = Column(String(16), unique=True, nullable=False, index=True)
+    name = Column(String(100), nullable=False)
+    location = Column(String(100))  # Geographic location
+    ip_address = Column(String(45))  # Public IP
+    honeypot_type = Column(String(50), default='cowrie')  # cowrie, dionaea, etc.
+    description = Column(Text)
+    api_key_hash = Column(String(64))  # SHA256 hash of API key
+    status = Column(String(20), default='active')  # active, inactive, maintenance
+    registered_at = Column(DateTime, default=datetime.utcnow)
+    last_seen = Column(DateTime)
+    attack_count = Column(Integer, default=0)
+
+    def __repr__(self):
+        return f"<Honeypot {self.name} ({self.honeypot_id})>"
+
+
 class Attack(Base):
     """Main attack/session table"""
     __tablename__ = 'attacks'
@@ -22,6 +43,7 @@ class Attack(Base):
     src_port = Column(Integer)
     dst_port = Column(Integer)
     session_id = Column(String(255), unique=True, index=True)
+    honeypot_id = Column(String(16), index=True)  # Link to reporting honeypot
 
     # Geolocation data
     country = Column(String(100), index=True)
@@ -119,3 +141,94 @@ class Download(Base):
 
     def __repr__(self):
         return f"<Download {self.filename} hash={self.file_hash[:16]}>"
+
+
+class AttackerProfile(Base):
+    """Automated attacker profiles"""
+    __tablename__ = 'attacker_profiles'
+
+    id = Column(Integer, primary_key=True)
+    ip_address = Column(String(45), unique=True, nullable=False, index=True)
+
+    # Statistics
+    total_sessions = Column(Integer, default=0)
+    total_login_attempts = Column(Integer, default=0)
+    successful_logins = Column(Integer, default=0)
+    total_commands = Column(Integer, default=0)
+    total_downloads = Column(Integer, default=0)
+    first_seen = Column(DateTime)
+    last_seen = Column(DateTime)
+    active_days = Column(Integer, default=0)
+
+    # Classification
+    sophistication_level = Column(String(20))  # script_kiddie, basic, intermediate, advanced
+    sophistication_score = Column(Integer)
+    primary_objective = Column(String(50))
+    all_objectives = Column(Text)  # JSON
+
+    # Risk assessment
+    risk_level = Column(String(20), index=True)  # low, medium, high, critical
+    risk_score = Column(Integer)
+    risk_factors = Column(Text)  # JSON
+
+    # Behavioral traits
+    behavioral_traits = Column(Text)  # JSON array
+    detected_tools = Column(Text)  # JSON array
+    credential_patterns = Column(Text)  # JSON array
+
+    # Temporal patterns
+    appears_automated = Column(Boolean, default=False)
+    peak_hour = Column(Integer)
+    peak_day = Column(String(20))
+
+    # Flags
+    has_malware = Column(Boolean, default=False)
+    uses_obfuscation = Column(Boolean, default=False)
+    is_persistent = Column(Boolean, default=False)
+
+    # Recommendations
+    recommendations = Column(Text)  # JSON array
+
+    # Metadata
+    profile_generated = Column(DateTime, default=datetime.utcnow)
+    last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<AttackerProfile {self.ip_address} risk={self.risk_level}>"
+
+
+class ThreatIntel(Base):
+    """Threat intelligence data for IP addresses"""
+    __tablename__ = 'threat_intel'
+
+    id = Column(Integer, primary_key=True)
+    ip_address = Column(String(45), unique=True, nullable=False, index=True)
+
+    # AbuseIPDB data
+    abuse_confidence_score = Column(Integer)  # 0-100
+    abuse_total_reports = Column(Integer)
+    abuse_last_reported = Column(DateTime)
+    is_tor_exit = Column(Boolean, default=False)
+    abuse_isp = Column(String(255))
+    abuse_domain = Column(String(255))
+    abuse_usage_type = Column(String(100))
+
+    # Shodan data
+    shodan_ports = Column(Text)  # JSON array of ports
+    shodan_vulns_count = Column(Integer)
+    shodan_os = Column(String(100))
+    shodan_org = Column(String(255))
+    shodan_hostnames = Column(Text)  # JSON array
+
+    # Overall assessment
+    threat_level = Column(String(20))  # critical, high, medium, low, clean
+    threat_score = Column(Integer)  # 0-100
+    threat_indicators = Column(Text)  # JSON array
+
+    # Metadata
+    first_seen = Column(DateTime, default=datetime.utcnow)
+    last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    enrichment_sources = Column(String(100))  # e.g., "abuseipdb,shodan"
+
+    def __repr__(self):
+        return f"<ThreatIntel {self.ip_address} score={self.threat_score}>"

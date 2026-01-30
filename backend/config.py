@@ -43,6 +43,35 @@ class Config:
     ADMIN_USERNAME = os.getenv('ADMIN_USERNAME', 'admin')
     ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin')  # Change in production!
 
+    # VirusTotal Integration
+    VIRUSTOTAL_API_KEY = os.getenv('VIRUSTOTAL_API_KEY', '')
+    VIRUSTOTAL_ENABLED = os.getenv('VIRUSTOTAL_ENABLED', 'True').lower() == 'true'
+    VIRUSTOTAL_RATE_LIMIT = os.getenv('VIRUSTOTAL_RATE_LIMIT', 'True').lower() == 'true'
+
+    # Cowrie download directory (where captured malware is stored)
+    COWRIE_DOWNLOAD_PATH = os.getenv('COWRIE_DOWNLOAD_PATH', '/home/honeypot/cowrie/var/lib/cowrie/downloads')
+
+    # Threat Intelligence Integration
+    # AbuseIPDB - IP reputation database (https://www.abuseipdb.com/)
+    ABUSEIPDB_API_KEY = os.getenv('ABUSEIPDB_API_KEY', '')
+    ABUSEIPDB_ENABLED = os.getenv('ABUSEIPDB_ENABLED', 'True').lower() == 'true'
+
+    # Shodan - Internet device search engine (https://www.shodan.io/)
+    SHODAN_API_KEY = os.getenv('SHODAN_API_KEY', '')
+    SHODAN_ENABLED = os.getenv('SHODAN_ENABLED', 'True').lower() == 'true'
+
+    # Threat Intel settings
+    THREAT_INTEL_RATE_LIMIT = os.getenv('THREAT_INTEL_RATE_LIMIT', 'True').lower() == 'true'
+    THREAT_INTEL_CACHE_HOURS = int(os.getenv('THREAT_INTEL_CACHE_HOURS', '24'))
+
+    # Elasticsearch Configuration
+    ELASTICSEARCH_ENABLED = os.getenv('ELASTICSEARCH_ENABLED', 'False').lower() == 'true'
+    ELASTICSEARCH_HOSTS = os.getenv('ELASTICSEARCH_HOSTS', 'http://localhost:9200').split(',')
+    ELASTICSEARCH_CLOUD_ID = os.getenv('ELASTICSEARCH_CLOUD_ID', '')
+    ELASTICSEARCH_API_KEY = os.getenv('ELASTICSEARCH_API_KEY', '')
+    ELASTICSEARCH_USERNAME = os.getenv('ELASTICSEARCH_USERNAME', '')
+    ELASTICSEARCH_PASSWORD = os.getenv('ELASTICSEARCH_PASSWORD', '')
+
     @classmethod
     def validate(cls):
         """Validate configuration"""

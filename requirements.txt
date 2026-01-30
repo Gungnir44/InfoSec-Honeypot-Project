@@ -47,7 +47,7 @@ mypy==1.8.0
 
 # Optional: Advanced Analytics
 # plotly==5.18.0
-# elasticsearch==8.11.1
+elasticsearch==8.11.1
 # tensorflow==2.15.0
 # torch==2.1.2
 

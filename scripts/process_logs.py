@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from backend.config import config
 from backend.database.db_manager import DatabaseManager
-from backend.analyzers import CowrieLogParser, GeoAnalyzer, PatternAnalyzer, CommandAnalyzer
+from backend.analyzers import CowrieLogParser, GeoAnalyzer, PatternAnalyzer, CommandAnalyzer, VirusTotalAnalyzer
 
 # Configure logging
 logging.basicConfig(
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 class LogProcessor:
     """Process Cowrie logs and import to database"""
 
-    def __init__(self, log_path: str):
+    def __init__(self, log_path: str, enable_virustotal: bool = True):
         self.log_path = log_path
         self.db_manager = DatabaseManager()
         self.log_parser = CowrieLogParser()
@@ -38,6 +38,17 @@ class LogProcessor:
         self.pattern_analyzer = PatternAnalyzer()
         self.command_analyzer = CommandAnalyzer()
         self.file_position = 0
+
+        # Initialize VirusTotal analyzer if enabled and configured
+        self.vt_analyzer = None
+        if enable_virustotal and config.VIRUSTOTAL_ENABLED and config.VIRUSTOTAL_API_KEY:
+            self.vt_analyzer = VirusTotalAnalyzer(
+                api_key=config.VIRUSTOTAL_API_KEY,
+                rate_limit=config.VIRUSTOTAL_RATE_LIMIT
+            )
+            logger.info("VirusTotal integration enabled")
+        else:
+            logger.info("VirusTotal integration disabled (no API key or disabled in config)")
 
     def process_file(self, start_from_beginning: bool = False):
         """Process log file and import data"""
@@ -132,8 +143,53 @@ class LogProcessor:
             }
             self.db_manager.add_command(command_data)
 
+        # Process downloads with VirusTotal integration
+        download_events = self.log_parser.extract_downloads(events)
+        for dl_event in download_events:
+            self.process_download(attack.id, dl_event)
+
         logger.info(f"Processed session {session_id}: "
-                   f"{len(login_attempts)} logins, {len(command_events)} commands")
+                   f"{len(login_attempts)} logins, {len(command_events)} commands, "
+                   f"{len(download_events)} downloads")
+
+    def process_download(self, attack_id: int, download_event: dict):
+        """Process a download event with optional VirusTotal analysis"""
+        file_hash = download_event.get('shasum')
+
+        # Check if we've already processed this hash
+        if file_hash:
+            existing = self.db_manager.get_download_by_hash(file_hash)
+            if existing:
+                logger.debug(f"Download hash already exists: {file_hash[:16]}...")
+                return
+
+        download_data = {
+            'attack_id': attack_id,
+            'url': download_event.get('url'),
+            'filename': download_event.get('outfile'),
+            'file_hash': file_hash,
+            'timestamp': download_event.get('timestamp'),
+            'malware_detected': False,
+            'virustotal_score': None
+        }
+
+        # Analyze with VirusTotal if available and we have a hash
+        if self.vt_analyzer and self.vt_analyzer.is_enabled and file_hash:
+            vt_result = self.vt_analyzer.analyze_hash(file_hash)
+
+            if vt_result and vt_result.get('found'):
+                download_data['malware_detected'] = vt_result.get('is_malware', False)
+                download_data['virustotal_score'] = vt_result.get('detection_ratio', '')
+
+                threat_summary = self.vt_analyzer.get_threat_summary(vt_result)
+                logger.info(f"VirusTotal analysis for {file_hash[:16]}...: {threat_summary}")
+
+                if vt_result.get('is_malware'):
+                    logger.warning(f"MALWARE DETECTED: {file_hash} - {vt_result.get('popular_threat_names', 'Unknown')}")
+
+        download = self.db_manager.add_download(download_data)
+        if download:
+            logger.debug(f"Added download: {download_data.get('url', 'unknown')}")
 
     def monitor_continuous(self, interval: int = 60):
         """Continuously monitor log file for new entries"""

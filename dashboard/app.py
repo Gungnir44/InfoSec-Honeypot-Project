@@ -5,6 +5,7 @@ import os
 import sys
 from flask import Flask, render_template
 from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -16,6 +17,10 @@ from backend.database.db_manager import DatabaseManager
 app = Flask(__name__)
 app.config['SECRET_KEY'] = config.DASHBOARD_SECRET_KEY
 app.config['JSON_SORT_KEYS'] = False
+
+# Support for HTTPS behind reverse proxy (Nginx)
+# This ensures request.scheme returns 'https' and url_for generates https:// URLs
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 # Enable CORS for API endpoints
 CORS(app, resources={r"/api/*": {"origins": "*"}})

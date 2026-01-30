@@ -88,6 +88,62 @@ This project implements an intelligent honeypot system that:
 - Configurable alert thresholds
 - Severity-based routing
 
+### 🦠 Malware Analysis (VirusTotal Integration)
+- Automatic hash lookup for downloaded files
+- Real-time malware detection with threat scoring
+- Detection ratio and threat classification
+- Batch scanning for historical downloads
+- API rate limiting for free tier compatibility
+- Dashboard integration with malware statistics
+
+### 🔍 Threat Intelligence (AbuseIPDB + Shodan)
+- IP reputation checking via AbuseIPDB
+- Abuse confidence scores and report history
+- Tor exit node detection
+- Shodan host reconnaissance (open ports, services, vulnerabilities)
+- Combined threat assessment with overall risk scoring
+- Automatic enrichment of attacking IPs
+- Caching to minimize API calls
+
+### 🎭 Automated Attacker Profiling
+- Behavioral analysis of each attacking IP
+- Sophistication assessment (script kiddie to advanced)
+- Attack objective classification (recon, malware, persistence, etc.)
+- Kill chain detection (attack sequences)
+- Credential pattern analysis (dictionary attack, stuffing, spraying)
+- Tool detection (Mirai, Hydra, Metasploit signatures)
+- Risk scoring with actionable recommendations
+- Temporal pattern analysis (automated vs manual attacks)
+
+### 📊 Elasticsearch + Kibana Integration
+- Centralized log storage and full-text search
+- Real-time aggregations and analytics
+- Pre-built Kibana dashboards for visualization
+- Attack timeline histograms
+- Geographic attack distribution maps
+- Credential and command analysis
+- Threat level distribution charts
+- Docker Compose deployment for ELK stack
+
+### 🌐 Multi-Honeypot Coordination
+- Register and manage distributed honeypots across multiple locations
+- Secure API key authentication for remote honeypots
+- Real-time heartbeat monitoring for honeypot health status
+- Attack correlation across honeypots to detect coordinated attacks
+- Distributed campaign detection (botnet credential spraying)
+- Cross-honeypot statistics and unified attack view
+- Remote agent for Cowrie log collection and transmission
+- CLI management tool for honeypot administration
+
+### 🔒 HTTPS & Secure Access
+- **DuckDNS + Let's Encrypt**: 100% free permanent HTTPS (recommended!)
+- **Quick HTTPS**: Instant secure URL with zero configuration
+- **Cloudflare Tunnel**: Free HTTPS + DDoS protection + hidden server IP
+- Modern TLS 1.2/1.3 configuration
+- Security headers (HSTS, CSP, X-Frame-Options, etc.)
+- Auto-renewal of SSL certificates
+- One-command setup scripts for easy deployment
+
 ## Technology Stack
 
 ### Core Components
@@ -117,9 +173,16 @@ honeypot-project/
 │
 ├── deployment/                 # Deployment scripts and configs
 │   ├── setup_vps.sh           # Initial VPS setup script
+│   ├── setup_duckdns.sh       # FREE permanent HTTPS (recommended!)
+│   ├── quick_https.sh         # Instant HTTPS (temporary URL)
+│   ├── setup_cloudflare_tunnel.sh  # Cloudflare Tunnel setup
+│   ├── setup_ssl.sh           # Let's Encrypt SSL setup
+│   ├── check_ssl.sh           # SSL certificate status checker
 │   ├── install_cowrie.sh      # Cowrie installation
 │   ├── install_deps.sh        # System dependencies
-│   ├── nginx.conf             # Nginx configuration
+│   ├── nginx/                 # Nginx configurations
+│   │   ├── honeypot-http.conf  # HTTP-only config
+│   │   └── honeypot-https.conf # Full HTTPS config
 │   └── systemd/               # Systemd service files
 │       ├── cowrie.service
 │       └── dashboard.service
@@ -405,12 +468,12 @@ This project showcases:
 
 - [x] ~~Machine learning for anomaly detection~~ ✅ Implemented
 - [x] ~~Email alerts for significant attacks~~ ✅ Implemented
-- [ ] Integration with threat intelligence feeds (AbuseIPDB, Shodan)
-- [ ] Multi-honeypot coordination
-- [ ] Automated attacker profiling
-- [ ] Malware analysis integration (VirusTotal API)
-- [ ] Elasticsearch + Kibana for advanced log analysis
-- [ ] HTTPS with Let's Encrypt SSL certificate
+- [x] ~~Malware analysis integration (VirusTotal API)~~ ✅ Implemented
+- [x] ~~Integration with threat intelligence feeds (AbuseIPDB, Shodan)~~ ✅ Implemented
+- [x] ~~Automated attacker profiling~~ ✅ Implemented
+- [x] ~~Elasticsearch + Kibana for advanced log analysis~~ ✅ Implemented
+- [x] ~~Multi-honeypot coordination~~ ✅ Implemented
+- [x] ~~HTTPS with Let's Encrypt SSL certificate~~ ✅ Implemented
 
 ## Contributing
 
