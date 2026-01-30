@@ -76,6 +76,41 @@
             <p class="loading">Loading recent attacks...</p>
         </div>
     </div>
+
+    <!-- Multi-Honeypot Status -->
+    <div class="section">
+        <h2>🌐 Honeypot Network Status</h2>
+        <div id="honeypot-status" class="honeypot-grid">
+            <p class="loading">Loading honeypot status...</p>
+        </div>
+    </div>
+
+    <!-- Threat Intelligence & Profiles Grid -->
+    <div class="charts-grid">
+        <!-- Threat Intelligence -->
+        <div class="section">
+            <h2>🛡️ Threat Intelligence</h2>
+            <div id="threat-intel" class="threat-intel-container">
+                <p class="loading">Loading threat intelligence...</p>
+            </div>
+        </div>
+
+        <!-- Attacker Profiles -->
+        <div class="section">
+            <h2>🎭 Top Attacker Profiles</h2>
+            <div id="attacker-profiles" class="profiles-container">
+                <p class="loading">Loading attacker profiles...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- VirusTotal Detections -->
+    <div class="section">
+        <h2>🦠 Malware Detections (VirusTotal)</h2>
+        <div id="virustotal-results" class="virustotal-container">
+            <p class="loading">Loading malware detections...</p>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -100,6 +135,12 @@
             await loadCredentialsChart();
             await loadCommandsChart();
             await loadRecentAttacks();
+
+            // Load new feature panels
+            await loadHoneypotStatus();
+            await loadThreatIntel();
+            await loadAttackerProfiles();
+            await loadVirusTotalResults();
 
             console.log('Dashboard loaded successfully');
         } catch (error) {
@@ -142,6 +183,127 @@
                     </div>
                 </div>
             `).join('');
+        }
+    }
+
+    // Load Honeypot Network Status
+    async function loadHoneypotStatus() {
+        try {
+            const response = await fetch('/api/honeypots');
+            const result = await response.json();
+            const container = document.getElementById('honeypot-status');
+
+            if (!result.success || !result.data.honeypots || result.data.honeypots.length === 0) {
+                container.innerHTML = '<p class="no-data">No honeypots registered. Use manage_honeypots.py to register honeypots.</p>';
+                return;
+            }
+
+            container.innerHTML = result.data.honeypots.map(hp => `
+                <div class="honeypot-card ${hp.status === 'online' ? 'online' : 'offline'}">
+                    <div class="honeypot-status-indicator"></div>
+                    <div class="honeypot-info">
+                        <h4>${hp.name}</h4>
+                        <p class="honeypot-location">${hp.location || 'Unknown location'}</p>
+                        <p class="honeypot-stats">${hp.attack_count || 0} attacks</p>
+                        <p class="honeypot-seen">Last seen: ${hp.last_seen ? new Date(hp.last_seen).toLocaleString() : 'Never'}</p>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            document.getElementById('honeypot-status').innerHTML = '<p class="no-data">Honeypot status unavailable</p>';
+        }
+    }
+
+    // Load Threat Intelligence
+    async function loadThreatIntel() {
+        try {
+            const response = await fetch('/api/threat-intel/high-threats?limit=5');
+            const result = await response.json();
+            const container = document.getElementById('threat-intel');
+
+            if (!result.success || !result.data || result.data.length === 0) {
+                container.innerHTML = '<p class="no-data">No threat intelligence data yet. Run enrich_threat_intel.py to analyze IPs.</p>';
+                return;
+            }
+
+            container.innerHTML = result.data.map(intel => `
+                <div class="threat-card threat-${intel.threat_level || 'unknown'}">
+                    <div class="threat-header">
+                        <span class="threat-ip">${intel.ip_address}</span>
+                        <span class="threat-badge ${intel.threat_level || 'unknown'}">${(intel.threat_level || 'unknown').toUpperCase()}</span>
+                    </div>
+                    <div class="threat-details">
+                        <p>Abuse Score: <strong>${intel.abuse_confidence_score || 0}%</strong></p>
+                        <p>Reports: ${intel.abuse_total_reports || 0}</p>
+                        ${intel.is_tor_exit ? '<span class="tor-badge">TOR Exit</span>' : ''}
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            document.getElementById('threat-intel').innerHTML = '<p class="no-data">Threat intelligence unavailable</p>';
+        }
+    }
+
+    // Load Attacker Profiles
+    async function loadAttackerProfiles() {
+        try {
+            const response = await fetch('/api/profiles/high-risk?limit=5');
+            const result = await response.json();
+            const container = document.getElementById('attacker-profiles');
+
+            if (!result.success || !result.data || result.data.length === 0) {
+                container.innerHTML = '<p class="no-data">No attacker profiles yet. Run generate_profiles.py to analyze attackers.</p>';
+                return;
+            }
+
+            container.innerHTML = result.data.map(profile => `
+                <div class="profile-card risk-${profile.risk_level || 'unknown'}">
+                    <div class="profile-header">
+                        <span class="profile-ip">${profile.ip_address}</span>
+                        <span class="risk-badge ${profile.risk_level || 'unknown'}">${(profile.risk_level || 'unknown').toUpperCase()}</span>
+                    </div>
+                    <div class="profile-details">
+                        <p>Sophistication: <strong>${profile.sophistication_level || 'Unknown'}</strong></p>
+                        <p>Sessions: ${profile.total_sessions || 0} | Commands: ${profile.total_commands || 0}</p>
+                        <p>Objective: ${profile.primary_objective || 'Unknown'}</p>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            document.getElementById('attacker-profiles').innerHTML = '<p class="no-data">Attacker profiles unavailable</p>';
+        }
+    }
+
+    // Load VirusTotal Results
+    async function loadVirusTotalResults() {
+        try {
+            const response = await fetch('/api/downloads/recent?limit=5');
+            const result = await response.json();
+            const container = document.getElementById('virustotal-results');
+
+            if (!result.success || !result.data || result.data.length === 0) {
+                container.innerHTML = '<p class="no-data">No malware samples detected yet. Downloads will be automatically scanned via VirusTotal.</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="virustotal-list">
+                    ${result.data.map(dl => `
+                        <div class="vt-item ${dl.malware_detected ? 'malware' : 'clean'}">
+                            <div class="vt-icon">${dl.malware_detected ? '🦠' : '✅'}</div>
+                            <div class="vt-info">
+                                <p class="vt-filename">${dl.filename || 'Unknown file'}</p>
+                                <p class="vt-hash">${dl.file_hash ? dl.file_hash.substring(0, 16) + '...' : 'No hash'}</p>
+                            </div>
+                            <div class="vt-score">
+                                ${dl.virustotal_score || 'Not scanned'}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } catch (error) {
+            document.getElementById('virustotal-results').innerHTML = '<p class="no-data">VirusTotal data unavailable</p>';
         }
     }
 

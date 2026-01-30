@@ -408,3 +408,316 @@ footer {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--text-muted);
 }
+
+/* ==========================================
+   NEW FEATURE PANELS
+   ========================================== */
+
+/* Honeypot Network Status */
+.honeypot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.honeypot-card {
+    background-color: var(--bg-color);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid var(--border-color);
+}
+
+.honeypot-card.online {
+    border-left: 4px solid var(--success-color);
+}
+
+.honeypot-card.offline {
+    border-left: 4px solid var(--danger-color);
+}
+
+.honeypot-status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.honeypot-card.online .honeypot-status-indicator {
+    background-color: var(--success-color);
+    box-shadow: 0 0 8px var(--success-color);
+}
+
+.honeypot-card.offline .honeypot-status-indicator {
+    background-color: var(--danger-color);
+}
+
+.honeypot-info h4 {
+    margin-bottom: 0.25rem;
+    color: var(--text-color);
+}
+
+.honeypot-location {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.honeypot-stats {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.honeypot-seen {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+/* Threat Intelligence */
+.threat-intel-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.threat-card {
+    background-color: var(--bg-color);
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+}
+
+.threat-card.threat-critical {
+    border-left: 4px solid #dc2626;
+}
+
+.threat-card.threat-high {
+    border-left: 4px solid #ea580c;
+}
+
+.threat-card.threat-medium {
+    border-left: 4px solid var(--warning-color);
+}
+
+.threat-card.threat-low {
+    border-left: 4px solid var(--success-color);
+}
+
+.threat-card.threat-unknown {
+    border-left: 4px solid var(--text-muted);
+}
+
+.threat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.threat-ip {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.threat-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.threat-badge.critical {
+    background-color: rgba(220, 38, 38, 0.2);
+    color: #dc2626;
+}
+
+.threat-badge.high {
+    background-color: rgba(234, 88, 12, 0.2);
+    color: #ea580c;
+}
+
+.threat-badge.medium {
+    background-color: rgba(202, 138, 4, 0.2);
+    color: var(--warning-color);
+}
+
+.threat-badge.low {
+    background-color: rgba(22, 163, 74, 0.2);
+    color: var(--success-color);
+}
+
+.threat-badge.unknown {
+    background-color: rgba(148, 163, 184, 0.2);
+    color: var(--text-muted);
+}
+
+.threat-details {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.threat-details p {
+    margin-bottom: 0.25rem;
+}
+
+.tor-badge {
+    display: inline-block;
+    background-color: rgba(139, 92, 246, 0.2);
+    color: #8b5cf6;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 0.25rem;
+}
+
+/* Attacker Profiles */
+.profiles-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.profile-card {
+    background-color: var(--bg-color);
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+}
+
+.profile-card.risk-critical {
+    border-left: 4px solid #dc2626;
+}
+
+.profile-card.risk-high {
+    border-left: 4px solid #ea580c;
+}
+
+.profile-card.risk-medium {
+    border-left: 4px solid var(--warning-color);
+}
+
+.profile-card.risk-low {
+    border-left: 4px solid var(--success-color);
+}
+
+.profile-card.risk-unknown {
+    border-left: 4px solid var(--text-muted);
+}
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.profile-ip {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.risk-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.risk-badge.critical {
+    background-color: rgba(220, 38, 38, 0.2);
+    color: #dc2626;
+}
+
+.risk-badge.high {
+    background-color: rgba(234, 88, 12, 0.2);
+    color: #ea580c;
+}
+
+.risk-badge.medium {
+    background-color: rgba(202, 138, 4, 0.2);
+    color: var(--warning-color);
+}
+
+.risk-badge.low {
+    background-color: rgba(22, 163, 74, 0.2);
+    color: var(--success-color);
+}
+
+.risk-badge.unknown {
+    background-color: rgba(148, 163, 184, 0.2);
+    color: var(--text-muted);
+}
+
+.profile-details {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.profile-details p {
+    margin-bottom: 0.25rem;
+}
+
+/* VirusTotal Results */
+.virustotal-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.virustotal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.vt-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background-color: var(--bg-color);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.vt-item.malware {
+    border-left: 4px solid var(--danger-color);
+}
+
+.vt-item.clean {
+    border-left: 4px solid var(--success-color);
+}
+
+.vt-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.vt-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.vt-filename {
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vt-hash {
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.vt-score {
+    font-weight: 700;
+    color: var(--primary-color);
+    white-space: nowrap;
+}
