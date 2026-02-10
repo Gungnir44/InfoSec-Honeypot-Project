@@ -921,13 +921,20 @@ class DatabaseManager:
         """Get the hour with the most attacks"""
         session = self.get_session()
         try:
+            is_sqlite = 'sqlite' in self.database_uri
+
+            if is_sqlite:
+                hour_expr = func.strftime('%H', Attack.timestamp)
+            else:
+                hour_expr = func.extract('hour', Attack.timestamp)
+
             results = (
                 session.query(
-                    func.strftime('%H', Attack.timestamp).label('hour'),
+                    hour_expr.label('hour'),
                     func.count(Attack.id).label('count')
                 )
-                .group_by('hour')
-                .order_by(desc('count'))
+                .group_by(hour_expr)
+                .order_by(desc(func.count(Attack.id)))
                 .all()
             )
 
@@ -965,24 +972,36 @@ class DatabaseManager:
                 avg_secs = float(avg_duration)
             else:
                 # Fallback: estimate from login attempt timestamps per attack
-                from sqlalchemy import func as sa_func
-                subquery = (
-                    session.query(
-                        LoginAttempt.attack_id,
-                        (func.julianday(func.max(LoginAttempt.timestamp)) -
-                         func.julianday(func.min(LoginAttempt.timestamp))).label('duration_days')
+                is_sqlite = 'sqlite' in self.database_uri
+
+                if is_sqlite:
+                    subquery = (
+                        session.query(
+                            LoginAttempt.attack_id,
+                            (func.julianday(func.max(LoginAttempt.timestamp)) -
+                             func.julianday(func.min(LoginAttempt.timestamp))).label('duration_days')
+                        )
+                        .group_by(LoginAttempt.attack_id)
+                        .having(func.count(LoginAttempt.id) > 1)
+                        .subquery()
                     )
-                    .group_by(LoginAttempt.attack_id)
-                    .having(func.count(LoginAttempt.id) > 1)
-                    .subquery()
-                )
-
-                avg_days = session.query(func.avg(subquery.c.duration_days)).scalar()
-
-                if avg_days is not None:
-                    avg_secs = float(avg_days) * 86400  # Convert days to seconds
+                    avg_days = session.query(func.avg(subquery.c.duration_days)).scalar()
+                    avg_secs = float(avg_days) * 86400 if avg_days is not None else 0
                 else:
-                    avg_secs = 0
+                    # PostgreSQL: use EXTRACT(EPOCH FROM interval)
+                    subquery = (
+                        session.query(
+                            LoginAttempt.attack_id,
+                            func.extract('epoch',
+                                func.max(LoginAttempt.timestamp) - func.min(LoginAttempt.timestamp)
+                            ).label('duration_secs')
+                        )
+                        .group_by(LoginAttempt.attack_id)
+                        .having(func.count(LoginAttempt.id) > 1)
+                        .subquery()
+                    )
+                    avg_result = session.query(func.avg(subquery.c.duration_secs)).scalar()
+                    avg_secs = float(avg_result) if avg_result is not None else 0
 
             # Format nicely
             if avg_secs == 0:
