@@ -22,6 +22,7 @@ class CowrieLogParser:
         'cowrie.session.connect': 'session_connect',
         'cowrie.session.closed': 'session_closed',
         'cowrie.session.file_download': 'file_download',
+        'cowrie.session.file_upload': 'file_download',
         'cowrie.client.version': 'client_version',
     }
 
@@ -70,6 +71,7 @@ class CowrieLogParser:
             normalized['url'] = data.get('url')
             normalized['outfile'] = data.get('outfile')
             normalized['shasum'] = data.get('shasum')
+            normalized['filename'] = data.get('filename')
 
         elif event_type == 'session_connect':
             normalized['protocol'] = data.get('protocol')

@@ -166,7 +166,7 @@ class LogProcessor:
         download_data = {
             'attack_id': attack_id,
             'url': download_event.get('url'),
-            'filename': download_event.get('outfile'),
+            'filename': download_event.get('filename') or download_event.get('outfile'),
             'file_hash': file_hash,
             'timestamp': download_event.get('timestamp'),
             'malware_detected': False,
