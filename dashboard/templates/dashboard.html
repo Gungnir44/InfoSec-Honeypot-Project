@@ -124,51 +124,56 @@
     });
 
     async function loadDashboardData() {
-        try {
-            // Load summary statistics
-            await loadStats();
-
-            // Load visualizations
-            await loadAttackMap();
-            await loadTimeline();
-            await loadCountryChart();
-            await loadCredentialsChart();
-            await loadCommandsChart();
-            await loadRecentAttacks();
-
-            // Load new feature panels
-            await loadHoneypotStatus();
-            await loadThreatIntel();
-            await loadAttackerProfiles();
-            await loadVirusTotalResults();
-
-            console.log('Dashboard loaded successfully');
-        } catch (error) {
-            console.error('Error loading dashboard:', error);
-        }
+        // Load everything in parallel so one failure doesn't block the rest
+        await Promise.allSettled([
+            loadStats(),
+            loadAttackMap(),
+            loadTimeline(),
+            loadCountryChart(),
+            loadCredentialsChart(),
+            loadCommandsChart(),
+            loadRecentAttacks(),
+            loadHoneypotStatus(),
+            loadThreatIntel(),
+            loadAttackerProfiles(),
+            loadVirusTotalResults()
+        ]);
+        console.log('Dashboard load complete');
     }
 
     async function loadStats() {
-        const response = await fetch('/api/stats/summary');
-        const result = await response.json();
+        try {
+            const response = await fetch('/api/stats/summary');
+            const result = await response.json();
 
-        if (result.success) {
-            const data = result.data;
-            document.getElementById('total-attacks').textContent = data.total_attacks || 0;
-            document.getElementById('unique-countries').textContent = data.unique_countries || 0;
-            document.getElementById('unique-ips').textContent = data.unique_ips || 0;
-            document.getElementById('top-country').textContent = data.top_country || 'N/A';
+            if (result.success) {
+                const data = result.data;
+                document.getElementById('total-attacks').textContent = data.total_attacks || 0;
+                document.getElementById('unique-countries').textContent = data.unique_countries || 0;
+                document.getElementById('unique-ips').textContent = data.unique_ips || 0;
+                document.getElementById('top-country').textContent = data.top_country || 'N/A';
+            } else {
+                setStatsError();
+            }
+        } catch (e) {
+            setStatsError();
         }
     }
 
-    async function loadRecentAttacks() {
-        const response = await fetch('/api/attacks/recent?limit=10');
-        const result = await response.json();
+    function setStatsError() {
+        document.getElementById('total-attacks').textContent = '--';
+        document.getElementById('unique-countries').textContent = '--';
+        document.getElementById('unique-ips').textContent = '--';
+        document.getElementById('top-country').textContent = '--';
+    }
 
-        if (result.success) {
+    async function loadRecentAttacks() {
+        try {
+            const response = await fetch('/api/attacks/recent?limit=10');
+            const result = await response.json();
             const container = document.getElementById('recent-attacks');
 
-            if (result.data.length === 0) {
+            if (!result.success || result.data.length === 0) {
                 container.innerHTML = '<p class="no-data">No attacks recorded yet. Deploy the honeypot and wait for attackers!</p>';
                 return;
             }
@@ -183,6 +188,8 @@
                     </div>
                 </div>
             `).join('');
+        } catch (e) {
+            document.getElementById('recent-attacks').innerHTML = '<p class="no-data">Error loading recent attacks</p>';
         }
     }
 

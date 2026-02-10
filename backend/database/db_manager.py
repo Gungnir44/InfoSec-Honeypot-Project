@@ -235,26 +235,38 @@ class DatabaseManager:
             session.close()
 
     def get_attacks_over_time(self, days: int = 30, interval: str = 'day') -> List[Tuple]:
-        """Get attack timeline"""
+        """Get attack timeline (SQLite and PostgreSQL compatible)"""
         session = self.get_session()
         try:
             start_date = datetime.utcnow() - timedelta(days=days)
 
-            if interval == 'hour':
-                date_trunc = func.date_trunc('hour', Attack.timestamp)
-            elif interval == 'day':
-                date_trunc = func.date_trunc('day', Attack.timestamp)
-            else:  # week
-                date_trunc = func.date_trunc('week', Attack.timestamp)
+            is_sqlite = 'sqlite' in self.database_uri
+
+            if is_sqlite:
+                # SQLite uses strftime
+                if interval == 'hour':
+                    time_bucket = func.strftime('%Y-%m-%d %H:00:00', Attack.timestamp)
+                elif interval == 'day':
+                    time_bucket = func.strftime('%Y-%m-%d', Attack.timestamp)
+                else:  # week
+                    time_bucket = func.strftime('%Y-%W', Attack.timestamp)
+            else:
+                # PostgreSQL uses date_trunc
+                if interval == 'hour':
+                    time_bucket = func.date_trunc('hour', Attack.timestamp)
+                elif interval == 'day':
+                    time_bucket = func.date_trunc('day', Attack.timestamp)
+                else:
+                    time_bucket = func.date_trunc('week', Attack.timestamp)
 
             return (
                 session.query(
-                    date_trunc.label('time_bucket'),
+                    time_bucket.label('time_bucket'),
                     func.count(Attack.id).label('count')
                 )
                 .filter(Attack.timestamp >= start_date)
-                .group_by('time_bucket')
-                .order_by('time_bucket')
+                .group_by(time_bucket)
+                .order_by(time_bucket)
                 .all()
             )
         finally:
@@ -899,6 +911,115 @@ class DatabaseManager:
                 'malware_deployers': malware_count,
                 'automated_attacks': automated_count,
                 'objective_distribution': {obj: count for obj, count in objectives if obj}
+            }
+        finally:
+            session.close()
+
+    # ===== Insight Analytics =====
+
+    def get_most_active_hour(self) -> Dict:
+        """Get the hour with the most attacks"""
+        session = self.get_session()
+        try:
+            results = (
+                session.query(
+                    func.strftime('%H', Attack.timestamp).label('hour'),
+                    func.count(Attack.id).label('count')
+                )
+                .group_by('hour')
+                .order_by(desc('count'))
+                .all()
+            )
+
+            if results:
+                top_hour = int(results[0][0])
+                top_count = results[0][1]
+                # Format as 12-hour time
+                if top_hour == 0:
+                    formatted = "12 AM"
+                elif top_hour < 12:
+                    formatted = f"{top_hour} AM"
+                elif top_hour == 12:
+                    formatted = "12 PM"
+                else:
+                    formatted = f"{top_hour - 12} PM"
+
+                return {
+                    'hour': top_hour,
+                    'formatted': formatted,
+                    'count': top_count,
+                    'distribution': [{'hour': int(h), 'count': c} for h, c in results]
+                }
+            return {'hour': None, 'formatted': 'No data', 'count': 0, 'distribution': []}
+        finally:
+            session.close()
+
+    def get_average_session_duration(self) -> Dict:
+        """Get average session duration from sessions table, fallback to login timestamps"""
+        session = self.get_session()
+        try:
+            # Try sessions table first
+            avg_duration = session.query(func.avg(Session.duration)).scalar()
+
+            if avg_duration is not None:
+                avg_secs = float(avg_duration)
+            else:
+                # Fallback: estimate from login attempt timestamps per attack
+                from sqlalchemy import func as sa_func
+                subquery = (
+                    session.query(
+                        LoginAttempt.attack_id,
+                        (func.julianday(func.max(LoginAttempt.timestamp)) -
+                         func.julianday(func.min(LoginAttempt.timestamp))).label('duration_days')
+                    )
+                    .group_by(LoginAttempt.attack_id)
+                    .having(func.count(LoginAttempt.id) > 1)
+                    .subquery()
+                )
+
+                avg_days = session.query(func.avg(subquery.c.duration_days)).scalar()
+
+                if avg_days is not None:
+                    avg_secs = float(avg_days) * 86400  # Convert days to seconds
+                else:
+                    avg_secs = 0
+
+            # Format nicely
+            if avg_secs == 0:
+                formatted = "No data"
+            elif avg_secs < 60:
+                formatted = f"{avg_secs:.0f}s"
+            elif avg_secs < 3600:
+                formatted = f"{avg_secs / 60:.1f} min"
+            else:
+                formatted = f"{avg_secs / 3600:.1f} hrs"
+
+            return {
+                'avg_seconds': round(avg_secs, 1),
+                'formatted': formatted
+            }
+        finally:
+            session.close()
+
+    def get_login_success_rate(self) -> Dict:
+        """Get login success rate"""
+        session = self.get_session()
+        try:
+            total = session.query(func.count(LoginAttempt.id)).scalar() or 0
+            successful = (
+                session.query(func.count(LoginAttempt.id))
+                .filter(LoginAttempt.success == True)
+                .scalar() or 0
+            )
+
+            rate = round(successful / total * 100, 1) if total > 0 else 0
+
+            return {
+                'total_attempts': total,
+                'successful': successful,
+                'failed': total - successful,
+                'success_rate': rate,
+                'formatted': f"{rate}%"
             }
         finally:
             session.close()

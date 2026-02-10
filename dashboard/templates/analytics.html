@@ -59,9 +59,31 @@
     });
 
     async function loadAnalytics() {
+        loadInsights();
         await loadTopIPsChart();
         await loadCommandCategoriesChart();
         await loadUsernamesChart();
+    }
+
+    async function loadInsights() {
+        try {
+            const response = await fetch('/api/insights');
+            const result = await response.json();
+
+            if (result.success) {
+                const data = result.data;
+                document.getElementById('active-hour').textContent =
+                    data.active_hour.formatted + ' (' + data.active_hour.count + ' attacks)';
+                document.getElementById('avg-duration').textContent =
+                    data.session_duration.formatted;
+                document.getElementById('success-rate').textContent =
+                    data.success_rate.formatted + ' (' + data.success_rate.successful + '/' + data.success_rate.total_attempts + ')';
+            }
+        } catch (e) {
+            document.getElementById('active-hour').textContent = 'Error loading';
+            document.getElementById('avg-duration').textContent = 'Error loading';
+            document.getElementById('success-rate').textContent = 'Error loading';
+        }
     }
 
     async function loadTopIPsChart() {

@@ -17,6 +17,29 @@ api_bp = Blueprint('api', __name__)
 db_manager = DatabaseManager()
 
 
+@api_bp.route('/insights', methods=['GET'])
+def get_attack_insights():
+    """Get attack insights: most active hour, avg session duration, success rate"""
+    try:
+        active_hour = db_manager.get_most_active_hour()
+        session_duration = db_manager.get_average_session_duration()
+        success_rate = db_manager.get_login_success_rate()
+
+        return jsonify({
+            'success': True,
+            'data': {
+                'active_hour': active_hour,
+                'session_duration': session_duration,
+                'success_rate': success_rate
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 @api_bp.route('/stats/summary', methods=['GET'])
 def get_summary_stats():
     """Get overall attack statistics"""
@@ -103,7 +126,7 @@ def get_attack_timeline():
 
         data = [
             {
-                'timestamp': timestamp.isoformat() if timestamp else None,
+                'timestamp': timestamp.isoformat() if hasattr(timestamp, 'isoformat') else str(timestamp),
                 'count': count
             }
             for timestamp, count in timeline
