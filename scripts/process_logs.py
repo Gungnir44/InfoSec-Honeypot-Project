@@ -88,7 +88,10 @@ class LogProcessor:
         # Check if session already exists
         existing_attack = self.db_manager.get_attack_by_session(session_id)
         if existing_attack:
-            logger.debug(f"Session {session_id} already processed")
+            # Still check for uncaptured downloads on existing sessions
+            download_events = self.log_parser.extract_downloads(events)
+            for dl_event in download_events:
+                self.process_download(existing_attack.id, dl_event)
             return
 
         # Get session metadata
